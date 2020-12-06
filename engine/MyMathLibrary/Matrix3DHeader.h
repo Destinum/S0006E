@@ -175,7 +175,7 @@ inline Matrix3D Matrix3D::vectorRotation(float Q, Vector3D r)
 	temp.matris[2][1] = t * tempS.vektor[1] * tempS.vektor[2] - s * tempS.vektor[0];
 	temp.matris[2][2] = w*t + c;
 
-	return temp;
+	return *this * temp;
 }
 
 inline Matrix3D Matrix3D::inverse()

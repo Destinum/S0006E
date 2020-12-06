@@ -6,13 +6,8 @@
 	(C) 2015-2020 Individual contributors, see AUTHORS file
 */
 //------------------------------------------------------------------------------
-#include "core/app.h"
+#include "MeshResource.h"
 #include "render/window.h"
-#include "MyMathLibrary/Matrix3DHeader.h"
-#include "MyMathLibrary/Vector3DHeader.h"
-#include "MyMathLibrary/Vector2DHeader.h"
-
-//asda
 
 namespace Example
 {
@@ -33,7 +28,10 @@ private:
 	GLuint program;
 	GLuint vertexShader;
 	GLuint pixelShader;
-	GLuint triangle;
+	//GLuint triangle;
+
+	MeshResource Quad;
+
 	Display::Window* window;
 };
 } // namespace Example
