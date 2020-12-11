@@ -60,6 +60,8 @@ public:
 	/// set optional nanovg render function
 	void SetNanoVGRender(const std::function<void(NVGcontext *)> & func);
 
+	GLFWwindow* window;				//Changed from private to public
+
 private:
 
 	/// static key press callback
@@ -99,7 +101,7 @@ private:
 	int32 width;
 	int32 height;
 	std::string title;
-	GLFWwindow* window;
+	//GLFWwindow* window;
 	NVGcontext * vg;
 };
 

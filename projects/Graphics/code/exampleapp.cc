@@ -6,89 +6,123 @@
 #include "exampleapp.h"
 #include <cstring>
 
+
 const GLchar* vs =
 "#version 430\n"
 "layout(location=0) in vec4 pos;\n"
 "layout(location=1) in vec4 color;\n"
+"layout(location=2) in vec2 InTexture;\n"
 
-
+"uniform mat4 MVP;\n"
 "uniform vec4 ObjectPosition;\n"
 "uniform mat4 ObjectRotation;\n"
 
-"out vec4 Color;\n"
+//"out vec4 Color;\n"
+"out vec2 TextureCoordinates;\n"
 
 "void main()\n"
 "{\n"
-"	gl_Position = ObjectRotation * pos + vec4(ObjectPosition.xyz, 0);\n"
-"	Color = color;\n"
+"	gl_Position = MVP * (ObjectRotation * pos + vec4(ObjectPosition.xyz, 0));\n"
+//"	Color = color;\n"
+"	TextureCoordinates = InTexture;\n"
 "}\n";
 
 const GLchar* ps =
 "#version 430\n"
 "out vec4 color;\n"
 
-"in vec4 Color;\n"
+//"in vec4 Color;\n"
+"in vec2 TextureCoordinates;\n"
+
+"uniform sampler2D Texture;\n"
 
 "void main()\n"
 "{\n"
-"	color = Color;\n"
+//"	color = Color;\n"
+"	color = texture(Texture, TextureCoordinates);\n"
 "}\n";
 
 using namespace Display;
 namespace Example
 {
 
-//------------------------------------------------------------------------------
-/**
-*/
-ExampleApp::ExampleApp()
-{
-	// empty
+void ExampleApp::computeMatricesFromInputs(){
+
+	// glfwGetTime is called only once, the first time this function is called
+	static double theLastTime = glfwGetTime();
+
+	// Compute time difference between current and last frame
+	double theCurrentTime = glfwGetTime();
+	float theDeltaTime = float(theCurrentTime - theLastTime);
+
+	//cout << theDeltaTime << endl;
+
+	// Get mouse position
+	double xpos, ypos;
+	glfwGetCursorPos(this->window->window, &xpos, &ypos);
+
+	// Reset mouse position for next frame
+	glfwSetCursorPos(this->window->window, 1024/2, 768/2);
+
+	// Compute new orientation
+	if (glfwGetMouseButton(this->window->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		horizontalAngle += mouseSpeed * float(1024/2 - xpos );
+		verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+	}
+
+	// Direction : Spherical coordinates to Cartesian coordinates conversion
+	Vector3D direction(
+		cos(verticalAngle) * sin(horizontalAngle), 
+		sin(verticalAngle),
+		cos(verticalAngle) * cos(horizontalAngle),
+		0
+	);
+	
+	// Right vector
+	Vector3D right(
+		sin(horizontalAngle - 3.14f/2.0f), 
+		0,
+		cos(horizontalAngle - 3.14f/2.0f),
+		0
+	);
+	
+	// Up vector
+	Vector3D up = right.CrossProduct(direction);
+
+	// Move forward
+	if (glfwGetKey( window->window, GLFW_KEY_UP ) == GLFW_PRESS || glfwGetKey( window->window, GLFW_KEY_W ) == GLFW_PRESS){
+		position = position + direction * theDeltaTime * speed;
+	}
+	// Move backward
+	if (glfwGetKey( window->window, GLFW_KEY_DOWN ) == GLFW_PRESS || glfwGetKey( window->window, GLFW_KEY_S ) == GLFW_PRESS){
+		position = position - direction * theDeltaTime * speed;
+	}
+	// Strafe right
+	if (glfwGetKey( window->window, GLFW_KEY_RIGHT ) == GLFW_PRESS || glfwGetKey( window->window, GLFW_KEY_D ) == GLFW_PRESS){
+		position = position + right * theDeltaTime * speed;
+	}
+	// Strafe left
+	if (glfwGetKey( window->window, GLFW_KEY_LEFT ) == GLFW_PRESS || glfwGetKey( window->window, GLFW_KEY_A ) == GLFW_PRESS){
+		position = position - right * theDeltaTime * speed;
+	}
+
+
+	this->Projection = Projection.ProjectionMatrix(initialFoV, 4.0f/3.0f, 0.1f, 100.0f);
+	this->View = View.ViewMatrix(position, position + direction, up);
+	this->MVP = Projection * View;
+
+	glUniformMatrix4fv(this->MatrixID, 1, GL_FALSE, &(this->MVP).matris[0][0]);
+
+	// For the next frame, the "last time" will be "now"
+	theLastTime = theCurrentTime;
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
-ExampleApp::~ExampleApp()
-{
-	// empty
-}
 
-//------------------------------------------------------------------------------
-/**
-*/
-bool
-ExampleApp::Open()
+bool ExampleApp::Open()
 {
 	App::Open();
 	this->window = new Display::Window;
-	window->SetKeyPressFunction([this](int32, int32, int32, int32)
-	{
-		this->window->Close();
-	});
-
-
-	GLfloat buf[] =
-	{
-		-0.5,	0.5,	-1, 	1,	// Top Left
-		0.5,	0.5,	-1, 	1,	// Top Right
-		-0.5,	-0.5,	-1, 	1,	// Bottom Left
-		0.5,	-0.5,	-1, 	1	// Bottom Right
-	};
-
-	GLfloat bufColor[] = 
-	{
-		0,		1,		0,		1,	// Top Left
-		0,		0,		1,		1,	// Top Right
-		0,		0,		1,		1,	// Bottom Left
-		0,		1,		0,		1	// Bottom Right
-	};
-
-	unsigned int bufIndices[] = 
-	{
-		0, 1, 2,		//Triangle 1
-		3, 1, 2			//Triangle 2
-	};
 
 	if (this->window->Open())
 	{
@@ -143,21 +177,20 @@ ExampleApp::Open()
 			delete[] buf;
 		}
 
-		// setup vbo
-		glGenBuffers(1, &this->Quad.VertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, this->Quad.VertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(buf), buf, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &this->Quad.ColorBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, this->Quad.ColorBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(bufColor), bufColor, GL_STATIC_DRAW);
+		glUniform1i(glGetUniformLocation(this->program, "Texture"), 0);
 
-		glGenBuffers(1, &this->Quad.IndexBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->Quad.IndexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(bufIndices), bufIndices, GL_STATIC_DRAW);
+		// setup camera
+		this->MatrixID = glGetUniformLocation(this->program, "MVP");
 
+		// setup renderable objects
+		TextureResource aTexture;
+		aTexture.LoadTexture("../4Texture.png");
+		this->Object.Quad(1.0, aTexture);
+		//this->Object.Cube(1.0, aTexture);
+		//this->Object.Cube(1.0);
+		//this->Object2.Cube(2.0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		return true;
 	}
 	return false;
@@ -169,43 +202,37 @@ ExampleApp::Open()
 void
 ExampleApp::Run()
 {
+	glUseProgram(this->program);
+
+	// Enable depth test
+	glEnable(GL_DEPTH_TEST);
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc(GL_LESS); 
+
 	float Movement = 0.001;
+
+	//this->Object.Position = this->Object.Position + Vector3D(3, 0, 0, 1);
 
 	while (this->window->IsOpen())
 	{
-		glUseProgram(this->program);
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		this->window->Update();
 
 		// do stuff
 
-		if (this->Quad.Position.vektor[0] <= -0.5 || this->Quad.Position.vektor[0] >= 0.5)
+		computeMatricesFromInputs();
+
+		/*
+		if (this->Object.Position.vektor[0] <= -0.5 || this->Object.Position.vektor[0] >= 0.5)
 			Movement *= -1;
 
-		this->Quad.Position = this->Quad.Position + Vector3D(Movement, 0, 0, 1);
-		this->Quad.Rotation = this->Quad.Rotation.vectorRotation(0.1, Vector3D(0, 0, 1, 0));
+		this->Object.Position = this->Object.Position + Vector3D(Movement, 0, 0, 1);
+		this->Object.Rotation = this->Object.Rotation.vectorRotation(0.1, Vector3D(1, 1, 1, 0));
+		*/
 
-		glUniform4f(glGetUniformLocation(this->program, "ObjectPosition"), this->Quad.Position.vektor[0], this->Quad.Position.vektor[1], this->Quad.Position.vektor[2], this->Quad.Position.vektor[3]);
-		glUniformMatrix4fv(glGetUniformLocation(this->program, "ObjectRotation"), 1, GL_FALSE, &(this->Quad.Rotation).matris[0][0]);
-
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, this->Quad.VertexBuffer);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-
-		glBindBuffer(GL_ARRAY_BUFFER, this->Quad.ColorBuffer);
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-		
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->Quad.IndexBuffer);
-		glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, NULL);
-		//glDrawArrays(GL_TRIANGLES, 0, 2*3);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		this->Object.RenderQuad(this->program);
+		//this->Object2.RenderCube(this->program);
+		//this->Object2.RenderQuad(this->program);
 
 		this->window->SwapBuffers();
 	}
