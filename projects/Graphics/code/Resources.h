@@ -9,33 +9,54 @@
 class TextureResource
 {
 public:
+	GLuint TheTexture = 0;
+	GLuint TextureID;
 
-	unsigned int TheTexture;
-
-	unsigned int LoadTexture(char const* filepath);
+	void LoadTexture(const GLchar* filepath, GLuint program);
 	void BindTexture();
 };
 
 class MeshResource
 {
 public:
-	//MeshResource();
 	~MeshResource();
-
-    Vector3D Position;
-    Matrix3D Rotation;
 
 	GLuint VertexBuffer;
     GLuint ColorBuffer = 0;
 	GLuint IndexBuffer;
+	int NumberOfVertices;
 
-	TextureResource Texture;
+	void Render();
 
 	void Quad(float Scale);
-	void Quad(float Scale, TextureResource Texture);
-	void RenderQuad(GLuint Program);
+	void Quad(float Scale, bool IsTextured);
 
 	void Cube(float Scale);
-	void Cube(float Scale, TextureResource Texture);
-	void RenderCube(GLuint Program);
+	void Cube(float Scale, bool IsTextured);
+};
+
+class ShaderObject
+{
+public:
+	GLuint program;
+
+    GLuint VertexShader;
+	GLuint FragmentShader;
+
+	GLuint MatrixID;
+
+	void Setup(const GLchar* PathToVertexShader, const GLchar* PathToFragmentShader);
+};
+
+class GraphicsNode
+{
+public:
+    MeshResource Mesh;
+	TextureResource Texture;
+	ShaderObject Shaders;
+	Matrix3D TransformationMatrix;
+	GLuint TransformationID;
+
+	void Draw(Matrix3D MVP);
+	void AddTransform(Vector3D Transform);
 };

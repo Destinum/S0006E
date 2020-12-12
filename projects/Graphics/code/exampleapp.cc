@@ -6,42 +6,6 @@
 #include "exampleapp.h"
 #include <cstring>
 
-
-const GLchar* vs =
-"#version 430\n"
-"layout(location=0) in vec4 pos;\n"
-"layout(location=1) in vec4 color;\n"
-"layout(location=2) in vec2 InTexture;\n"
-
-"uniform mat4 MVP;\n"
-"uniform vec4 ObjectPosition;\n"
-"uniform mat4 ObjectRotation;\n"
-
-//"out vec4 Color;\n"
-"out vec2 TextureCoordinates;\n"
-
-"void main()\n"
-"{\n"
-"	gl_Position = MVP * (ObjectRotation * pos + vec4(ObjectPosition.xyz, 0));\n"
-//"	Color = color;\n"
-"	TextureCoordinates = InTexture;\n"
-"}\n";
-
-const GLchar* ps =
-"#version 430\n"
-"out vec4 color;\n"
-
-//"in vec4 Color;\n"
-"in vec2 TextureCoordinates;\n"
-
-"uniform sampler2D Texture;\n"
-
-"void main()\n"
-"{\n"
-//"	color = Color;\n"
-"	color = texture(Texture, TextureCoordinates);\n"
-"}\n";
-
 using namespace Display;
 namespace Example
 {
@@ -112,8 +76,6 @@ void ExampleApp::computeMatricesFromInputs(){
 	this->View = View.ViewMatrix(position, position + direction, up);
 	this->MVP = Projection * View;
 
-	glUniformMatrix4fv(this->MatrixID, 1, GL_FALSE, &(this->MVP).matris[0][0]);
-
 	// For the next frame, the "last time" will be "now"
 	theLastTime = theCurrentTime;
 }
@@ -126,70 +88,37 @@ bool ExampleApp::Open()
 
 	if (this->window->Open())
 	{
-		// set clear color to gray
+		// Set clear color to gray
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-		// setup vertex shader
-		this->vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		GLint length = static_cast<GLint>(std::strlen(vs));
-		glShaderSource(this->vertexShader, 1, &vs, &length);
-		glCompileShader(this->vertexShader);
+		// Set filepath of shaders and texture
+		const GLchar* VertexShader = "../projects/Graphics/Shaders/VertexShader.vert";
+		const GLchar* FragmentShader = "../projects/Graphics/Shaders/FragmentShader.frag";
+		const GLchar* Texture = "../projects/Graphics/Textures/DiceTexture.jpg";
 
-		// get error log
-		GLint shaderLogSize;
-		glGetShaderiv(this->vertexShader, GL_INFO_LOG_LENGTH, &shaderLogSize);
-		if (shaderLogSize > 0)
-		{
-			GLchar* buf = new GLchar[shaderLogSize];
-			glGetShaderInfoLog(this->vertexShader, shaderLogSize, NULL, buf);
-			printf("[SHADER COMPILE ERROR]: %s", buf);
-			delete[] buf;
-		}
+		//Setup GraphicNode with Shaders, Texture and Mesh
+		this->GraphicNodes.push_back(GraphicsNode());
+		this->GraphicNodes.push_back(GraphicsNode());
 
-		// setup pixel shader
-		this->pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
-		length = static_cast<GLint>(std::strlen(ps));
-		glShaderSource(this->pixelShader, 1, &ps, &length);
-		glCompileShader(this->pixelShader);
+		this->GraphicNodes[0].Shaders.Setup(VertexShader, FragmentShader);
+		this->GraphicNodes[0].Texture.LoadTexture(Texture, this->GraphicNodes[0].Shaders.program);
+		this->GraphicNodes[0].Mesh.Cube(1.0, true);
+		this->GraphicNodes[0].TransformationID = glGetUniformLocation(this->GraphicNodes[0].Shaders.program, "TransformationMatrix");
 
-		// get error log
-		shaderLogSize;
-		glGetShaderiv(this->pixelShader, GL_INFO_LOG_LENGTH, &shaderLogSize);
-		if (shaderLogSize > 0)
-		{
-			GLchar* buf = new GLchar[shaderLogSize];
-			glGetShaderInfoLog(this->pixelShader, shaderLogSize, NULL, buf);
-			printf("[SHADER COMPILE ERROR]: %s", buf);
-			delete[] buf;
-		}
+		VertexShader = "../projects/Graphics/Shaders/ColorVertexShader.vert";
+		FragmentShader = "../projects/Graphics/Shaders/ColorFragmentShader.frag";
+		//Texture = "../projects/Graphics/Textures/4Texture.png";
 
-		// create a program object
-		this->program = glCreateProgram();
-		glAttachShader(this->program, this->vertexShader);
-		glAttachShader(this->program, this->pixelShader);
-		glLinkProgram(this->program);
-		glGetProgramiv(this->program, GL_INFO_LOG_LENGTH, &shaderLogSize);
-		if (shaderLogSize > 0)
-		{
-			GLchar* buf = new GLchar[shaderLogSize];
-			glGetProgramInfoLog(this->program, shaderLogSize, NULL, buf);
-			printf("[PROGRAM LINK ERROR]: %s", buf);
-			delete[] buf;
-		}
+		this->GraphicNodes[1].Shaders.Setup(VertexShader, FragmentShader);
+		//this->GraphicNodes[1].Texture.LoadTexture(Texture, this->GraphicNodes[1].Shaders.program);
+		this->GraphicNodes[1].Mesh.Quad(1.0, true);
+		this->GraphicNodes[1].Mesh.Quad(1.0);
+		this->GraphicNodes[1].TransformationID = glGetUniformLocation(this->GraphicNodes[1].Shaders.program, "TransformationMatrix");
+		this->GraphicNodes[1].AddTransform(Vector3D(3, 0, 0, 1));
+			
 
-
-		glUniform1i(glGetUniformLocation(this->program, "Texture"), 0);
-
-		// setup camera
-		this->MatrixID = glGetUniformLocation(this->program, "MVP");
-
-		// setup renderable objects
-		TextureResource aTexture;
-		aTexture.LoadTexture("../4Texture.png");
-		this->Object.Quad(1.0, aTexture);
-		//this->Object.Cube(1.0, aTexture);
-		//this->Object.Cube(1.0);
-		//this->Object2.Cube(2.0);
+		// setup texture
+		//glUniform1i(glGetUniformLocation(this->program, "Texture"), 0);
 
 		return true;
 	}
@@ -202,8 +131,6 @@ bool ExampleApp::Open()
 void
 ExampleApp::Run()
 {
-	glUseProgram(this->program);
-
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
@@ -211,28 +138,26 @@ ExampleApp::Run()
 
 	float Movement = 0.001;
 
-	//this->Object.Position = this->Object.Position + Vector3D(3, 0, 0, 1);
-
 	while (this->window->IsOpen())
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		this->window->Update();
 
-		// do stuff
-
+		// Update camera based on keyboard and mouse imputs
 		computeMatricesFromInputs();
 
 		/*
-		if (this->Object.Position.vektor[0] <= -0.5 || this->Object.Position.vektor[0] >= 0.5)
+		if (this->GraphicNodes[0].TransformationMatrix.matris[3][0] <= -0.5 || this->GraphicNodes[0].TransformationMatrix.matris[3][0] >= 0.5)
 			Movement *= -1;
 
-		this->Object.Position = this->Object.Position + Vector3D(Movement, 0, 0, 1);
-		this->Object.Rotation = this->Object.Rotation.vectorRotation(0.1, Vector3D(1, 1, 1, 0));
+		this->GraphicNodes[0].AddTransform(Vector3D(Movement, 0, 0, 1));
+		this->GraphicNodes[0].TransformationMatrix.vectorRotation(0.1, Vector3D(1, 1, 1, 0));
 		*/
-
-		this->Object.RenderQuad(this->program);
-		//this->Object2.RenderCube(this->program);
-		//this->Object2.RenderQuad(this->program);
+		
+		for (int i = 0; i < this->GraphicNodes.size(); i++)
+		{
+			this->GraphicNodes[i].Draw(this->MVP);
+		}
 
 		this->window->SwapBuffers();
 	}

@@ -1,9 +1,9 @@
 #include "Resources.h"
 
 
-unsigned int TextureResource::LoadTexture(char const* filepath)
+void TextureResource::LoadTexture(const GLchar* filepath, GLuint program)
 {
-		unsigned int texture;
+		GLuint texture;
 		glGenTextures(1, &texture);
 
 		// load and generate the texture
@@ -35,11 +35,12 @@ unsigned int TextureResource::LoadTexture(char const* filepath)
 
 		stbi_image_free(data);
         this->TheTexture = texture;
-		return texture;
+		this->TextureID = glGetUniformLocation(program, "Texture");
 }
 
 void TextureResource::BindTexture()
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->TheTexture);
+	glUniform1i(this->TextureID, 0);
 }

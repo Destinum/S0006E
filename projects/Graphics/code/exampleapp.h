@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 #include "Resources.h"
 #include "render/window.h"
+#include <vector>
 
 namespace Example
 {
@@ -27,19 +28,10 @@ public:
 	void computeMatricesFromInputs();
 
 private:
-
-	GLuint program;
-	GLuint vertexShader;
-	GLuint pixelShader;
-	//GLuint triangle;
-
-	MeshResource Object;
-	//MeshResource Object2;
+	std::vector<GraphicsNode> GraphicNodes;
 
 	Display::Window* window;
 
-
-	GLuint MatrixID;
 	Matrix3D MVP;
 	Matrix3D View;
 	Matrix3D Projection;
