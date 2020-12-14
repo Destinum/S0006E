@@ -100,4 +100,5 @@ void ShaderObject::Setup(const GLchar* PathToVertexShader, const GLchar* PathToF
     }
 
     this->MatrixID = glGetUniformLocation(this->program, "MVP");
+    this->CameraID = glGetUniformLocation(this->program, "CameraPosition");
 }

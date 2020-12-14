@@ -28,20 +28,20 @@ public:
 	float vektor[2];
 };
 
-inline Vector2D::Vector2D(float x, float y)			//Konstruktor f�r samtliga komponenter.
+inline Vector2D::Vector2D(float x, float y)			//Konstruktor för samtliga komponenter.
 {
 	this->vektor[0] = x;
 	this-> vektor[1] = y;
 }
 
-inline Vector2D::Vector2D()			//Konstruktor f�r inga komponenter.
+inline Vector2D::Vector2D()			//Konstruktor för inga komponenter.
 {
 }
 
-inline Vector2D::Vector2D(const Vector2D &obj)			//Konstruktor f�r kopiering.
+inline Vector2D::Vector2D(const Vector2D &obj)			//Konstruktor för kopiering.
 {
 	this->vektor[0] = obj.vektor[0];
-	this-> vektor[1] = obj.vektor[1];
+	this->vektor[1] = obj.vektor[1];
 }
 
 inline Vector2D::~Vector2D(void)

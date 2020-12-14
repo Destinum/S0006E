@@ -8,7 +8,6 @@
 //------------------------------------------------------------------------------
 #include "Resources.h"
 #include "render/window.h"
-#include <vector>
 
 namespace Example
 {
@@ -29,6 +28,7 @@ public:
 
 private:
 	std::vector<GraphicsNode> GraphicNodes;
+	LightSource TheLightSource;
 
 	Display::Window* window;
 
@@ -42,7 +42,7 @@ private:
 	//Matrix3D ProjectionMatrix;
 	
 	// Initial position : on +Z
-	Vector3D position = Vector3D(0, 0, 5, 1); 
+	Vector3D position = Vector3D(0, 0, 10, 1); 
 	// Initial horizontal angle : toward -Z
 	float horizontalAngle = 3.14f;
 	// Initial vertical angle : none

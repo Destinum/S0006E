@@ -92,33 +92,34 @@ bool ExampleApp::Open()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 		// Set filepath of shaders and texture
-		const GLchar* VertexShader = "../projects/Graphics/Shaders/VertexShader.vert";
-		const GLchar* FragmentShader = "../projects/Graphics/Shaders/FragmentShader.frag";
-		const GLchar* Texture = "../projects/Graphics/Textures/DiceTexture.jpg";
+		const GLchar* VertexShader = "../projects/Graphics/Shaders/LightVertexShader.vert";
+		const GLchar* FragmentShader = "../projects/Graphics/Shaders/LightFragmentShader.frag";
+		const GLchar* Texture = "../projects/Graphics/Textures/GolfBallTexture.jpg";
 
 		//Setup GraphicNode with Shaders, Texture and Mesh
 		this->GraphicNodes.push_back(GraphicsNode());
 		this->GraphicNodes.push_back(GraphicsNode());
 
-		this->GraphicNodes[0].Shaders.Setup(VertexShader, FragmentShader);
-		this->GraphicNodes[0].Texture.LoadTexture(Texture, this->GraphicNodes[0].Shaders.program);
-		this->GraphicNodes[0].Mesh.Cube(1.0, true);
-		this->GraphicNodes[0].TransformationID = glGetUniformLocation(this->GraphicNodes[0].Shaders.program, "TransformationMatrix");
+		int index = 0;
 
-		VertexShader = "../projects/Graphics/Shaders/ColorVertexShader.vert";
-		FragmentShader = "../projects/Graphics/Shaders/ColorFragmentShader.frag";
-		//Texture = "../projects/Graphics/Textures/4Texture.png";
+		//First GrauphicsNode
 
-		this->GraphicNodes[1].Shaders.Setup(VertexShader, FragmentShader);
-		//this->GraphicNodes[1].Texture.LoadTexture(Texture, this->GraphicNodes[1].Shaders.program);
-		this->GraphicNodes[1].Mesh.Quad(1.0, true);
-		this->GraphicNodes[1].Mesh.Quad(1.0);
-		this->GraphicNodes[1].TransformationID = glGetUniformLocation(this->GraphicNodes[1].Shaders.program, "TransformationMatrix");
-		this->GraphicNodes[1].AddTransform(Vector3D(3, 0, 0, 1));
-			
+		this->GraphicNodes[index].Shaders.Setup(VertexShader, FragmentShader);
+		this->GraphicNodes[index].Texture.LoadTexture(Texture, this->GraphicNodes[index].Shaders.program);
+		this->GraphicNodes[index].Mesh.loadOBJ("../projects/Graphics/Meshes/GolfBall.obj");
+		this->GraphicNodes[index].TransformationID = glGetUniformLocation(this->GraphicNodes[index].Shaders.program, "TransformationMatrix");
+		this->GraphicNodes[index].AddTransform(Vector3D(-3, 0, 0, 1));
 
-		// setup texture
-		//glUniform1i(glGetUniformLocation(this->program, "Texture"), 0);
+		//Second GrauphicsNode
+		index++;
+
+		this->GraphicNodes[index].Shaders.Setup(VertexShader, FragmentShader);
+		this->GraphicNodes[index].Texture.LoadTexture(Texture, this->GraphicNodes[index].Shaders.program);
+		this->GraphicNodes[index].Mesh.loadOBJ("../projects/Graphics/Meshes/GolfBall.obj");
+		this->GraphicNodes[index].TransformationID = glGetUniformLocation(this->GraphicNodes[index].Shaders.program, "TransformationMatrix");
+		this->GraphicNodes[index].AddTransform(Vector3D(3, 0, 0, 1));
+
+		this->TheLightSource.Update(&this->GraphicNodes);
 
 		return true;
 	}
@@ -136,7 +137,7 @@ ExampleApp::Run()
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS); 
 
-	float Movement = 0.001;
+	float Movement = 0.01;
 
 	while (this->window->IsOpen())
 	{
@@ -146,17 +147,15 @@ ExampleApp::Run()
 		// Update camera based on keyboard and mouse imputs
 		computeMatricesFromInputs();
 
-		/*
-		if (this->GraphicNodes[0].TransformationMatrix.matris[3][0] <= -0.5 || this->GraphicNodes[0].TransformationMatrix.matris[3][0] >= 0.5)
+		if (this->TheLightSource.Position.vektor[0] <= -5.0 || this->TheLightSource.Position.vektor[0] >= 5.0)
 			Movement *= -1;
 
-		this->GraphicNodes[0].AddTransform(Vector3D(Movement, 0, 0, 1));
-		this->GraphicNodes[0].TransformationMatrix.vectorRotation(0.1, Vector3D(1, 1, 1, 0));
-		*/
+		this->TheLightSource.AddPosition(Movement, 0, 0);
+		this->TheLightSource.Update(&this->GraphicNodes);	
 		
 		for (int i = 0; i < this->GraphicNodes.size(); i++)
 		{
-			this->GraphicNodes[i].Draw(this->MVP);
+			this->GraphicNodes[i].Draw(this->MVP, this->position);
 		}
 
 		this->window->SwapBuffers();
