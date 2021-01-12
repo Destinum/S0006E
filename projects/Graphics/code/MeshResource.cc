@@ -57,7 +57,6 @@ bool MeshResource::loadOBJ(const GLchar* path)
 {
 	printf("Loading OBJ file %s...\n", path);
 
-	//std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<unsigned int> vertexIndices;
 	std::vector<Vector3D> temp_vertices; 
 	std::vector<Vector2D> temp_uvs;
@@ -179,7 +178,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 	}
 	fclose(file);
 
-	GLfloat bufVertices[temp_vertices.size()*4];
+	GLfloat *bufVertices = new GLfloat[temp_vertices.size()*4];
 	for (int i = 0; i < temp_vertices.size(); i++)
 	{
 		int n = i*4;
@@ -189,7 +188,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 		bufVertices[n + 3] = temp_vertices[i].vektor[3];
 	}
 
-	GLfloat bufUVs[temp_uvs.size()*2];
+	GLfloat *bufUVs = new GLfloat[temp_uvs.size()*2];
 	for (int i = 0; i < temp_uvs.size(); i++)
 	{		
 		int n = i*2;
@@ -197,7 +196,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 		bufUVs[n + 1] = temp_uvs[IndexConverter[i + 1] - 1].vektor[1];
 	}
 
-	GLfloat bufNormals[temp_normals.size()*4];
+	GLfloat *bufNormals = new GLfloat[temp_normals.size()*4];
 	for (int i = 0; i < temp_normals.size(); i++)
 	{
 		int n = i*4;
@@ -207,7 +206,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 		bufNormals[n + 3] = temp_normals[i].vektor[3];
 	}
 
-	unsigned int bufIndices[vertexIndices.size()];
+	unsigned int *bufIndices = new unsigned int[vertexIndices.size()];
 	for (int i = 0; i < vertexIndices.size(); i++)
 	{	
 		bufIndices[i] = vertexIndices[i] - 1;
@@ -217,22 +216,27 @@ bool MeshResource::loadOBJ(const GLchar* path)
 
 	glGenBuffers(1, &this->VertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(bufVertices), bufVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * temp_vertices.size()*4, bufVertices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &this->UVBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->UVBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(bufUVs), bufUVs, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * temp_uvs.size()*2, bufUVs, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &this->NormalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->NormalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(bufNormals), bufNormals, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * temp_normals.size()*4, bufNormals, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &this->IndexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(bufIndices), bufIndices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * vertexIndices.size(), bufIndices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	delete [] bufVertices;
+	delete [] bufUVs;
+	delete [] bufNormals;
+	delete [] bufIndices;
 
 	return true;
 }
