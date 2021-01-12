@@ -72,8 +72,8 @@ void ExampleApp::computeMatricesFromInputs(){
 	}
 
 
-	this->Projection = Projection.ProjectionMatrix(initialFoV, 4.0f/3.0f, 0.1f, 100.0f);
-	this->View = View.ViewMatrix(position, position + direction, up);
+	Matrix3D Projection = Projection.ProjectionMatrix(initialFoV, 4.0f/3.0f, 0.1f, 100.0f);
+	Matrix3D View = View.ViewMatrix(position, position + direction, up);
 	this->MVP = Projection * View;
 
 	// For the next frame, the "last time" will be "now"
@@ -95,7 +95,7 @@ bool ExampleApp::Open()
 		const GLchar* VertexShader = "../projects/Graphics/Shaders/LightVertexShader.vert";
 		const GLchar* FragmentShader = "../projects/Graphics/Shaders/LightFragmentShader.frag";
 		const GLchar* Texture = "../projects/Graphics/Textures/GolfBallTexture.jpg";
-
+//*
 		//Setup GraphicNode with Shaders, Texture and Mesh
 		this->GraphicNodes.push_back(GraphicsNode());
 		this->GraphicNodes.push_back(GraphicsNode());
@@ -120,7 +120,7 @@ bool ExampleApp::Open()
 		this->GraphicNodes[index].AddTransform(Vector3D(3, 0, 0, 1));
 
 		this->TheLightSource.Update(&this->GraphicNodes);
-
+//*/
 		return true;
 	}
 	return false;
