@@ -111,9 +111,9 @@ bool MeshResource::loadOBJ(const GLchar* path)
 			
 			if (matches == 9 || matches == 12)
 			{
-				vertexIndices.push_back(vertexIndex[0]);
-				vertexIndices.push_back(vertexIndex[1]);
-				vertexIndices.push_back(vertexIndex[2]);
+				vertexIndices.push_back(vertexIndex[0] - 1);
+				vertexIndices.push_back(vertexIndex[1] - 1);
+				vertexIndices.push_back(vertexIndex[2] - 1);
 				/*
 				uvIndices.push_back(uvIndex[0]);
 				uvIndices.push_back(uvIndex[1]);
@@ -123,15 +123,15 @@ bool MeshResource::loadOBJ(const GLchar* path)
 				normalIndices.push_back(normalIndex[2]);
 				*/
 
-				IndexConverter[vertexIndex[0]] = uvIndex[0];
-				IndexConverter[vertexIndex[1]] = uvIndex[1];
-				IndexConverter[vertexIndex[2]] = uvIndex[2];
+				IndexConverter[vertexIndex[0] - 1] = uvIndex[0] - 1;
+				IndexConverter[vertexIndex[1] - 1] = uvIndex[1] - 1;
+				IndexConverter[vertexIndex[2] - 1] = uvIndex[2] - 1;
 
 				if (matches == 12)
 				{
-					vertexIndices.push_back(vertexIndex[0]);
-					vertexIndices.push_back(vertexIndex[2]);
-					vertexIndices.push_back(vertexIndex[3]);
+					vertexIndices.push_back(vertexIndex[0] - 1);
+					vertexIndices.push_back(vertexIndex[2] - 1);
+					vertexIndices.push_back(vertexIndex[3] - 1);
 					/*
 					uvIndices.push_back(uvIndex[0]);
 					uvIndices.push_back(uvIndex[2]);
@@ -141,7 +141,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 					normalIndices.push_back(normalIndex[3]);
 					*/
 
-					IndexConverter[vertexIndex[3]] = uvIndex[3];
+					IndexConverter[vertexIndex[3] - 1] = uvIndex[3] - 1;
 				}
 			}
 			else
@@ -153,9 +153,9 @@ bool MeshResource::loadOBJ(const GLchar* path)
 				
 				if (matches == 6)
 				{
-					vertexIndices.push_back(vertexIndex[0]);
-					vertexIndices.push_back(vertexIndex[1]);
-					vertexIndices.push_back(vertexIndex[2]);
+					vertexIndices.push_back(vertexIndex[0] - 1);
+					vertexIndices.push_back(vertexIndex[1] - 1);
+					vertexIndices.push_back(vertexIndex[2] - 1);
 					//normalIndices.push_back(normalIndex[0]);
 					//normalIndices.push_back(normalIndex[1]);
 					//normalIndices.push_back(normalIndex[2]);
@@ -192,8 +192,9 @@ bool MeshResource::loadOBJ(const GLchar* path)
 	for (int i = 0; i < temp_uvs.size(); i++)
 	{		
 		int n = i*2;
-		bufUVs[n] = temp_uvs[IndexConverter[i + 1] - 1].vektor[0];
-		bufUVs[n + 1] = temp_uvs[IndexConverter[i + 1] - 1].vektor[1];
+
+		bufUVs[n] = temp_uvs[IndexConverter[i]].vektor[0];
+		bufUVs[n + 1] = temp_uvs[IndexConverter[i]].vektor[1];
 	}
 
 	GLfloat *bufNormals = new GLfloat[temp_normals.size()*4];
@@ -209,7 +210,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 	unsigned int *bufIndices = new unsigned int[vertexIndices.size()];
 	for (int i = 0; i < vertexIndices.size(); i++)
 	{	
-		bufIndices[i] = vertexIndices[i] - 1;
+		bufIndices[i] = vertexIndices[i];
 	}
 
 	this->NumberOfVertices = vertexIndices.size();
