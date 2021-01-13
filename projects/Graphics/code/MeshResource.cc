@@ -122,7 +122,6 @@ bool MeshResource::loadOBJ(const GLchar* path)
 							if (temp_vertices[j] == temp_vertices[vertexIndex[i] - 1])
 							{
 								indexes.push_back(j);
-								cout << "Key " << j << ": " << IndexConverter[j] << endl;
 							}
 						}
 
@@ -213,9 +212,6 @@ bool MeshResource::loadOBJ(const GLchar* path)
 
 	}
 	fclose(file);
-
-	cout << "temp_vertices size: " << temp_vertices.size() << endl;
-	cout << "temp_uvs size: " << temp_uvs.size() << endl;
 
 	GLfloat *bufVertices = new GLfloat[temp_vertices.size()*4];
 	for (int i = 0; i < temp_vertices.size(); i++)
