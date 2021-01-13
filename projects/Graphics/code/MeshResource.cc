@@ -66,7 +66,7 @@ bool MeshResource::loadOBJ(const GLchar* path)
 	FILE * file = fopen(path, "r");
 	if ( file == NULL )
 	{
-		printf("Impossible to open the file ! Are you in the right path ? See Tutorial 1 for details\n");
+		printf("Impossible to open the file!\n");
 		getchar();
 		return false;
 	}
@@ -111,16 +111,52 @@ bool MeshResource::loadOBJ(const GLchar* path)
 			
 			if (matches == 9 || matches == 12)
 			{
+				for (int i = 0; i < matches/3; i++)
+				{
+					if (IndexConverter.count(vertexIndex[i] - 1) == 1 && IndexConverter[vertexIndex[i] - 1] != uvIndex[i] - 1)
+					{
+						std::vector<int> indexes;
+
+						for (int j = 0; j < temp_vertices.size(); j++)
+						{
+							if (temp_vertices[j] == temp_vertices[vertexIndex[i] - 1])
+							{
+								indexes.push_back(j);
+								cout << "Key " << j << ": " << IndexConverter[j] << endl;
+							}
+						}
+
+						bool IsKey = false;
+
+						for (int j = 0; j < indexes.size(); j++)
+						{
+							if (IndexConverter[indexes[j]] == uvIndex[i] - 1)
+							{
+								IsKey = true;
+								vertexIndex[i] = indexes[j] + 1;
+								break;
+							}
+						}
+
+						if (!IsKey)
+						{
+							temp_vertices.push_back(temp_vertices[vertexIndex[i] - 1]);
+							temp_normals.push_back(temp_normals[normalIndex[i] - 1]);
+							vertexIndex[i] = temp_vertices.size();
+						}
+					}
+				}
+
 				vertexIndices.push_back(vertexIndex[0] - 1);
 				vertexIndices.push_back(vertexIndex[1] - 1);
 				vertexIndices.push_back(vertexIndex[2] - 1);
 				/*
-				uvIndices.push_back(uvIndex[0]);
-				uvIndices.push_back(uvIndex[1]);
-				uvIndices.push_back(uvIndex[2]);
-				normalIndices.push_back(normalIndex[0]);
-				normalIndices.push_back(normalIndex[1]);
-				normalIndices.push_back(normalIndex[2]);
+				uvIndices.push_back(uvIndex[0] - 1);
+				uvIndices.push_back(uvIndex[1] - 1);
+				uvIndices.push_back(uvIndex[2] - 1);
+				normalIndices.push_back(normalIndex[0] - 1);
+				normalIndices.push_back(normalIndex[1] - 1);
+				normalIndices.push_back(normalIndex[2] - 1);
 				*/
 
 				IndexConverter[vertexIndex[0] - 1] = uvIndex[0] - 1;
@@ -133,12 +169,12 @@ bool MeshResource::loadOBJ(const GLchar* path)
 					vertexIndices.push_back(vertexIndex[2] - 1);
 					vertexIndices.push_back(vertexIndex[3] - 1);
 					/*
-					uvIndices.push_back(uvIndex[0]);
-					uvIndices.push_back(uvIndex[2]);
-					uvIndices.push_back(uvIndex[3]);
-					normalIndices.push_back(normalIndex[0]);
-					normalIndices.push_back(normalIndex[2]);
-					normalIndices.push_back(normalIndex[3]);
+					uvIndices.push_back(uvIndex[0] - 1);
+					uvIndices.push_back(uvIndex[2] - 1);
+					uvIndices.push_back(uvIndex[3] - 1);
+					normalIndices.push_back(normalIndex[0] - 1);
+					normalIndices.push_back(normalIndex[2] - 1);
+					normalIndices.push_back(normalIndex[3] - 1);
 					*/
 
 					IndexConverter[vertexIndex[3] - 1] = uvIndex[3] - 1;
@@ -156,9 +192,9 @@ bool MeshResource::loadOBJ(const GLchar* path)
 					vertexIndices.push_back(vertexIndex[0] - 1);
 					vertexIndices.push_back(vertexIndex[1] - 1);
 					vertexIndices.push_back(vertexIndex[2] - 1);
-					//normalIndices.push_back(normalIndex[0]);
-					//normalIndices.push_back(normalIndex[1]);
-					//normalIndices.push_back(normalIndex[2]);
+					//normalIndices.push_back(normalIndex[0] - 1);
+					//normalIndices.push_back(normalIndex[1] - 1);
+					//normalIndices.push_back(normalIndex[2] - 1);
 				}
 				else
 				{
@@ -177,6 +213,9 @@ bool MeshResource::loadOBJ(const GLchar* path)
 
 	}
 	fclose(file);
+
+	cout << "temp_vertices size: " << temp_vertices.size() << endl;
+	cout << "temp_uvs size: " << temp_uvs.size() << endl;
 
 	GLfloat *bufVertices = new GLfloat[temp_vertices.size()*4];
 	for (int i = 0; i < temp_vertices.size(); i++)
