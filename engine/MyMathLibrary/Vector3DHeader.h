@@ -13,6 +13,7 @@ public:
 	Vector3D operator*(const Vector3D &obj);
 	Vector3D operator*(float);
 	void operator=(const Vector3D &obj);
+	bool operator==(const Vector3D &obj);
 	void addition(float, float, float);
 	void subtraktion(float, float, float);
 	float punktprodukt(float, float, float);
@@ -98,6 +99,23 @@ inline void Vector3D::operator=(const Vector3D &obj) //Operator for giving a vec
 	this->vektor[3] = obj.vektor[3];
 }
 
+inline bool Vector3D::operator==(const Vector3D &obj) //Operator for comparing vectors.
+{
+	if (
+		this->vektor[0] == obj.vektor[0] &&
+		this->vektor[1] == obj.vektor[1] &&
+		this->vektor[2] == obj.vektor[2] &&
+		this->vektor[3] == obj.vektor[3]
+	)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	
+}
 
 inline void Vector3D::addition(float x, float y, float z) //Adding given values to a vector.
 {
