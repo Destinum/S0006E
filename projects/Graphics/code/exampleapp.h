@@ -1,3 +1,4 @@
+
 #pragma once
 //------------------------------------------------------------------------------
 /**
@@ -14,6 +15,11 @@ namespace Example
 class ExampleApp : public Core::App
 {
 public:
+	/// constructor
+	//ExampleApp();
+	/// destructor
+	//~ExampleApp();
+
 	/// open app
 	bool Open();
 	/// run app
@@ -22,14 +28,19 @@ public:
 	void computeMatricesFromInputs();
 
 private:
-	Display::Window* window;
-
-	Matrix3D MVP;
-
 	std::vector<GraphicsNode> GraphicNodes;
 	LightSource TheLightSource;
 
+	Display::Window* window;
+
+	Matrix3D MVP;
+	Matrix3D View;
+	Matrix3D Projection;
+
 	//Camera controlls
+
+	//Matrix3D ViewMatrix;
+	//Matrix3D ProjectionMatrix;
 	
 	// Initial position : on +Z
 	Vector3D position = Vector3D(0, 0, 10, 1); 

@@ -10,29 +10,49 @@ using namespace Display;
 namespace Example
 {
 
-void ExampleApp::computeMatricesFromInputs(){
-
+void ExampleApp::computeMatricesFromInputs()
+{
 	// glfwGetTime is called only once, the first time this function is called
 	static double theLastTime = glfwGetTime();
+	static double xposLast, yposLast;
+	static bool ControllingCamera = false;
 
 	// Compute time difference between current and last frame
 	double theCurrentTime = glfwGetTime();
 	float theDeltaTime = float(theCurrentTime - theLastTime);
 
-	//cout << theDeltaTime << endl;
-
-	// Get mouse position
-	double xpos, ypos;
-	glfwGetCursorPos(this->window->window, &xpos, &ypos);
-
-	// Reset mouse position for next frame
-	glfwSetCursorPos(this->window->window, 1024/2, 768/2);
-
-	// Compute new orientation
-	if (glfwGetMouseButton(this->window->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	// Check for mouse input 
+	if (ControllingCamera == false && glfwGetMouseButton(this->window->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 	{
-		horizontalAngle += mouseSpeed * float(1024/2 - xpos );
-		verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+		ControllingCamera = true;
+		glfwGetCursorPos(this->window->window, &xposLast, &yposLast);
+		glfwSetInputMode(this->window->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+		int Width, Height;
+		this->window->GetSize(Width, Height);
+		glfwSetCursorPos(this->window->window, Width/2, Height/2);
+	}
+	else if (ControllingCamera == true && glfwGetMouseButton(this->window->window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+	{
+		ControllingCamera = false;
+		glfwSetCursorPos(this->window->window, xposLast, yposLast);
+		glfwSetInputMode(this->window->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+
+	if (ControllingCamera)
+	{
+		// Get mouse position
+		double xpos, ypos;
+		glfwGetCursorPos(this->window->window, &xpos, &ypos);
+		int Width, Height;
+		this->window->GetSize(Width, Height);
+
+		// Reset mouse position for next frame
+		glfwSetCursorPos(this->window->window, Width/2, Height/2);
+
+		// Compute new orientation
+		horizontalAngle += mouseSpeed * float(Width/2 - xpos);
+		verticalAngle   += mouseSpeed * float(Height/2 - ypos);
 	}
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
@@ -72,8 +92,8 @@ void ExampleApp::computeMatricesFromInputs(){
 	}
 
 
-	Matrix3D Projection = Projection.ProjectionMatrix(initialFoV, 4.0f/3.0f, 0.1f, 100.0f);
-	Matrix3D View = View.ViewMatrix(position, position + direction, up);
+	this->Projection = Projection.ProjectionMatrix(initialFoV, 4.0f/3.0f, 0.1f, 100.0f);
+	this->View = View.ViewMatrix(position, position + direction, up);
 	this->MVP = Projection * View;
 
 	// For the next frame, the "last time" will be "now"
@@ -95,7 +115,7 @@ bool ExampleApp::Open()
 		const GLchar* VertexShader = "../projects/Graphics/Shaders/LightVertexShader.vert";
 		const GLchar* FragmentShader = "../projects/Graphics/Shaders/LightFragmentShader.frag";
 		const GLchar* Texture = "../projects/Graphics/Textures/GolfBallTexture.jpg";
-//*
+
 		//Setup GraphicNode with Shaders, Texture and Mesh
 		this->GraphicNodes.push_back(GraphicsNode());
 		this->GraphicNodes.push_back(GraphicsNode());
@@ -120,7 +140,7 @@ bool ExampleApp::Open()
 		this->GraphicNodes[index].AddTransform(Vector3D(3, 0, 0, 1));
 
 		this->TheLightSource.Update(&this->GraphicNodes);
-//*/
+
 		return true;
 	}
 	return false;

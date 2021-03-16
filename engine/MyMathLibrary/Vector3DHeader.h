@@ -7,6 +7,7 @@ class Vector3D
 {
 public:
 	Vector3D(float, float, float, float);
+	Vector3D(float, float, float);
 	Vector3D();
 	Vector3D operator+(const Vector3D &obj);
 	Vector3D operator-(const Vector3D &obj);
@@ -19,6 +20,7 @@ public:
 	float punktprodukt(float, float, float);
 	float langd();
 	Vector3D normalisera();
+	Vector3D ProjectionNormalize();
 	void set(float, float, float);
 	Vector3D CrossProduct(Vector3D);
 
@@ -31,6 +33,14 @@ inline Vector3D::Vector3D(float x, float y, float z, float w)			//constructor fo
 	this->vektor[1] = y;
 	this->vektor[2] = z;
 	this->vektor[3] = w;
+}
+
+inline Vector3D::Vector3D(float x, float y, float z)			//constructor for given values (no W).
+{
+	this->vektor[0] = x;
+	this->vektor[1] = y;
+	this->vektor[2] = z;
+	this->vektor[3] = 1.0;
 }
 
 inline Vector3D::Vector3D()			//Constructor for no given values.
@@ -146,6 +156,17 @@ inline Vector3D Vector3D::normalisera() //Returns the normalized version of a gi
 	Vector3D v(this->vektor[0] / this->langd(), this->vektor[1] / this->langd(), this->vektor[2] / this->langd(), this->vektor[3]);
 
 	return v;
+}
+
+inline Vector3D Vector3D::ProjectionNormalize() //Returns the projected normalized version of a given vector.
+{
+	Vector3D temp;
+
+	temp.vektor[0] = this->vektor[0] / abs(this->vektor[3]);
+	temp.vektor[1] = this->vektor[1] / abs(this->vektor[3]);
+	temp.vektor[2] = this->vektor[2] / abs(this->vektor[3]);
+
+	return temp;
 }
 
 inline void Vector3D::set(float x, float y, float z) //Set values of a vector.
